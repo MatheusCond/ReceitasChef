@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'foto_screen.dart';
 
@@ -48,32 +49,75 @@ class _CadastroScreenState extends State<CadastroScreen> {
     return null;
   }
 
-  void _signup() {
+  void _signup() async {
+    // Valida o formulário antes de prosseguir
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     setState(() => _isLoading = true);
 
-    // Simula a navegação após o "cadastro"
-    Future.delayed(const Duration(seconds: 2), () {
+    try {
+      // Cria a conta no Firebase
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (mounted) {
+        // Mostra um snackbar de sucesso
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cadastro realizado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Redireciona para a tela FotoScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const FotoScreen()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
       setState(() => _isLoading = false);
 
-      // Mostra o snack bar de sucesso
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cadastro realizado com sucesso!'),
-          backgroundColor: Color.fromARGB(255, 136, 10, 1),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      String errorMessage;
+      switch (e.code) {
+        case 'weak-password':
+          errorMessage = 'A senha deve ter pelo menos 6 caracteres';
+          break;
+        case 'email-already-in-use':
+          errorMessage = 'Este email já está cadastrado';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Email inválido';
+          break;
+        default:
+          errorMessage = 'Ocorreu um erro durante o cadastro';
+          break;
+      }
 
-      // Redireciona para a tela FotoPage após o cadastro (simulado)
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const FotoScreen()),
-      );
-    });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ocorreu um erro inesperado'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      print('Erro no cadastro: $e');
+    }
   }
 
   @override
@@ -90,8 +134,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           return Container(
-            height: constraints
-                .maxHeight, // Faz com que o Container ocupe toda a altura disponível
+            height: constraints.maxHeight,
             decoration: const BoxDecoration(
               image: DecorationImage(
                 image: NetworkImage(
@@ -105,120 +148,123 @@ class _CadastroScreenState extends State<CadastroScreen> {
               decoration: BoxDecoration(
                 color: Colors.black.withOpacity(0.4),
               ),
-              child: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.center, // Centraliza os inputs na tela
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Card contendo os campos de input
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          TextFormField(
-                            controller: _emailController,
-                            enabled: !_isLoading,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.email),
-                              filled: true,
-                              fillColor: Colors.white,
-                            ),
-                            validator: _validateEmail,
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _passwordController,
-                            enabled: !_isLoading,
-                            obscureText: _obscurePassword,
-                            decoration: InputDecoration(
-                              labelText: 'Senha',
-                              border: const OutlineInputBorder(),
-                              prefixIcon: const Icon(Icons.lock),
-                              filled: true,
-                              fillColor: Colors.white,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                ),
-                                onPressed: () => setState(
-                                    () => _obscurePassword = !_obscurePassword),
-                              ),
-                            ),
-                            validator: _validatePassword,
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _confirmPasswordController,
-                            enabled: !_isLoading,
-                            obscureText: _obscureConfirmPassword,
-                            decoration: InputDecoration(
-                              labelText: 'Confirmar Senha',
-                              border: const OutlineInputBorder(),
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              filled: true,
-                              fillColor: Colors.white,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscureConfirmPassword
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                ),
-                                onPressed: () => setState(() =>
-                                    _obscureConfirmPassword =
-                                        !_obscureConfirmPassword),
-                              ),
-                            ),
-                            validator: _validateConfirmPassword,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Botão Criar Conta
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _signup,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 136, 10, 1),
-                        foregroundColor: Colors.white,
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Card(
+                        elevation: 4,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                controller: _emailController,
+                                enabled: !_isLoading,
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: const InputDecoration(
+                                  labelText: 'Email',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.email),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                                validator: _validateEmail,
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _passwordController,
+                                enabled: !_isLoading,
+                                obscureText: _obscurePassword,
+                                decoration: InputDecoration(
+                                  labelText: 'Senha',
+                                  border: const OutlineInputBorder(),
+                                  prefixIcon: const Icon(Icons.lock),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
+                                    onPressed: () => setState(() =>
+                                        _obscurePassword = !_obscurePassword),
+                                  ),
+                                ),
+                                validator: _validatePassword,
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _confirmPasswordController,
+                                enabled: !_isLoading,
+                                obscureText: _obscureConfirmPassword,
+                                decoration: InputDecoration(
+                                  labelText: 'Confirmar Senha',
+                                  border: const OutlineInputBorder(),
+                                  prefixIcon: const Icon(Icons.lock_outline),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscureConfirmPassword
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
+                                    onPressed: () => setState(() =>
+                                        _obscureConfirmPassword =
+                                            !_obscureConfirmPassword),
+                                  ),
+                                ),
+                                validator: _validateConfirmPassword,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              'CRIAR CONTA',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _signup,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 136, 10, 1),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                    ),
+                            elevation: 2,
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'CRIAR CONTA',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           );

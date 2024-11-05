@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'foto_screen.dart';
 import 'cadastro_screen.dart';
@@ -16,6 +17,105 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordFocusNode = FocusNode();
   bool _isLoading = false;
   bool _obscurePassword = true;
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, insira seu email';
+    }
+    if (!value.contains('@') || !value.contains('.')) {
+      return 'Por favor, insira um email válido';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, insira sua senha';
+    }
+    if (value.length < 6) {
+      return 'A senha deve ter pelo menos 6 caracteres';
+    }
+    return null;
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      print('Tentando fazer login com email: ${_emailController.text.trim()}');
+
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login realizado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const FotoScreen()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      print('FirebaseAuthException: ${e.code} - ${e.message}');
+      setState(() => _isLoading = false);
+
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'Usuário não encontrado';
+          break;
+        case 'wrong-password':
+          errorMessage = 'Senha incorreta';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Email inválido';
+          break;
+        case 'invalid-credential':
+          errorMessage = 'Email ou senha inválidos';
+          break;
+        case 'user-disabled':
+          errorMessage = 'Este usuário foi desativado';
+          break;
+        case 'too-many-requests':
+          errorMessage = 'Muitas tentativas. Tente novamente mais tarde';
+          break;
+        default:
+          errorMessage = 'Erro ao fazer login';
+          break;
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Erro genérico: $e');
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ocorreu um erro inesperado'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,15 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             fillColor: Colors.white,
                             prefixIcon: Icon(Icons.email_outlined),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor, insira seu email';
-                            }
-                            if (!value.contains('@')) {
-                              return 'Por favor, insira um email válido';
-                            }
-                            return null;
-                          },
+                          validator: _validateEmail,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -88,14 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           enabled: !_isLoading,
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done,
-                          onFieldSubmitted: (_) {
-                            // Ação de login
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const FotoScreen()),
-                            );
-                          },
+                          onFieldSubmitted: (_) => _login(),
                           decoration: InputDecoration(
                             labelText: 'Senha',
                             hintText: 'Sua senha',
@@ -119,6 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     },
                             ),
                           ),
+                          validator: _validatePassword,
                         ),
                       ],
                     ),
@@ -129,15 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const FotoScreen()),
-                            );
-                          },
+                    onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 136, 10, 1),
                       foregroundColor: Colors.white,
@@ -201,12 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: _isLoading
                       ? null
                       : () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Em breve: Recuperação de senha'),
-                              backgroundColor: Color.fromARGB(255, 136, 10, 1),
-                            ),
-                          );
+                          _resetPassword();
                         },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -224,6 +297,55 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _resetPassword() async {
+    if (_emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Digite seu email para redefinir a senha'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: _emailController.text.trim(),
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Email de redefinição de senha enviado!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'Nenhuma conta encontrada com este email';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Email inválido';
+          break;
+        default:
+          errorMessage = 'Erro ao enviar email de redefinição';
+          break;
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override

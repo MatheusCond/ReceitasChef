@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "522027911686",
+    "project_id": "receitaschef-39cb5",
+    "storage_bucket": "receitaschef-39cb5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:522027911686:android:1ade956e4325116e5d9187",
+        "android_client_info": {
+          "package_name": "com.receitaschef.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeDnRiOKgTFoFlvsJqWHz1k7cnY-I_Jqs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
