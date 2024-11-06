@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
         '/foto_screen': (context) => FotoScreen(),
         '/cadastro_screen': (context) => CadastroScreen(),
       },
+      debugShowCheckedModeBanner: false,
     );
   }
 }
