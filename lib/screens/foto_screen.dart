@@ -539,6 +539,7 @@ class _FotoScreenState extends State<FotoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           'FOTO DO PRATO',
           style: TextStyle(color: Colors.white),
