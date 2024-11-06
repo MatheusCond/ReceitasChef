@@ -194,70 +194,317 @@ class _FotoScreenState extends State<FotoScreen> {
       context: context,
       builder: (context) => Dialog(
         child: Container(
-          padding: const EdgeInsets.all(16),
+          width: double.infinity,
+          margin: const EdgeInsets.all(16),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  recipe.title,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                // Título com ícone
+                Row(
+                  children: [
+                    Icon(
+                      Icons.restaurant_menu,
+                      color: const Color.fromARGB(255, 136, 10, 1),
+                      size: 30,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        recipe.title,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 136, 10, 1),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Informações básicas
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.timer, color: Colors.grey),
+                          const SizedBox(width: 4),
+                          Text(recipe.prepTime),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          const Icon(Icons.people, color: Colors.grey),
+                          const SizedBox(width: 4),
+                          Text('${recipe.servings} pessoas'),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text('Tempo de preparo: ${recipe.prepTime}'),
-                Text('Porções: ${recipe.servings}'),
-                const SizedBox(height: 16),
-                const Text(
-                  'Ingredientes:',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(height: 24),
+
+                // Ingredientes
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.shopping_cart,
+                            color: const Color.fromARGB(255, 136, 10, 1),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Ingredientes',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ...recipe.ingredients.map((i) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        const Color.fromARGB(255, 136, 10, 1),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(i)),
+                              ],
+                            ),
+                          )),
+                    ],
                   ),
                 ),
-                ...recipe.ingredients.map((i) => Text('• $i')),
                 const SizedBox(height: 16),
-                const Text(
-                  'Instruções:',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+
+                // Instruções
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.format_list_numbered,
+                            color: const Color.fromARGB(255, 136, 10, 1),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Modo de Preparo',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ...recipe.instructions
+                          .asMap()
+                          .entries
+                          .map((entry) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 24,
+                                      height: 24,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: const Color.fromARGB(
+                                            255, 136, 10, 1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '${entry.key + 1}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(entry.value),
+                                    ),
+                                  ],
+                                ),
+                              )),
+                    ],
                   ),
                 ),
-                ...recipe.instructions.map((i) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text('${recipe.instructions.indexOf(i) + 1}. $i'),
-                    )),
                 const SizedBox(height: 16),
-                const Text(
-                  'Dicas:',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+
+                // Dicas
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.lightbulb,
+                            color: const Color.fromARGB(255, 136, 10, 1),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Dicas',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ...recipe.tips.map((t) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.star,
+                                  size: 16,
+                                  color: const Color.fromARGB(255, 136, 10, 1),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(t)),
+                              ],
+                            ),
+                          )),
+                    ],
                   ),
                 ),
-                ...recipe.tips.map((t) => Text('• $t')),
                 const SizedBox(height: 16),
-                const Text(
-                  'Informações Nutricionais (por porção):',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+
+                // Informações Nutricionais
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.monitor_heart,
+                            color: const Color.fromARGB(255, 136, 10, 1),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Informações Nutricionais',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _nutritionItem(
+                              'Calorias',
+                              recipe.nutritionInfo.calories,
+                              Icons.local_fire_department),
+                          _nutritionItem('Proteínas',
+                              recipe.nutritionInfo.protein, Icons.egg),
+                          _nutritionItem('Carboidratos',
+                              recipe.nutritionInfo.carbs, Icons.bakery_dining),
+                          _nutritionItem('Gorduras', recipe.nutritionInfo.fat,
+                              Icons.opacity),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                Text('Calorias: ${recipe.nutritionInfo.calories}'),
-                Text('Proteínas: ${recipe.nutritionInfo.protein}'),
-                Text('Carboidratos: ${recipe.nutritionInfo.carbs}'),
-                Text('Gorduras: ${recipe.nutritionInfo.fat}'),
-                const SizedBox(height: 16),
+
+                const SizedBox(height: 24),
+                // Botão fechar
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Fechar'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color.fromARGB(255, 136, 10, 1),
+                    ),
+                    child: const Text(
+                      'Fechar',
+                      style: TextStyle(fontSize: 16),
+                    ),
                   ),
                 ),
               ],
@@ -268,25 +515,47 @@ class _FotoScreenState extends State<FotoScreen> {
     );
   }
 
+  Widget _nutritionItem(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: const Color.fromARGB(255, 136, 10, 1)),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 12),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: () {
-            // Redirecionar para a tela de login
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-            );
-          },
-        ),
         title: const Text(
           'FOTO DO PRATO',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color.fromARGB(255, 136, 10, 1),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () {
+              // Redirecionar para a tela de login
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: const BoxDecoration(
