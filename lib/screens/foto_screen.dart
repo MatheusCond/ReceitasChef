@@ -193,8 +193,12 @@ class _FotoScreenState extends State<FotoScreen> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 3), // Espaço nas laterais
         child: Container(
-          width: double.infinity,
+          // Definindo uma largura fixa ou uma largura relativa
+          width: MediaQuery.of(context).size.width -
+              32, // Subtrai 16 de cada lado (margem de 16px)
           margin: const EdgeInsets.all(16),
           child: SingleChildScrollView(
             child: Column(
